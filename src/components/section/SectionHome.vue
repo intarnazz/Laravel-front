@@ -9,8 +9,9 @@ const page = ref(1)
 const search = ref('')
 const postTitle = ref('')
 const postText = ref('')
+const fileInput = ref()
 
-onMounted(async () => {
+async function init() {
   try {
     posts.value = await GetPosts()
   } catch (e) {
@@ -19,6 +20,10 @@ onMounted(async () => {
   postsArr.value = Object.values(posts.value)
   postsArrSave.value = postsArr.value.slice()
   console.log(postsArr.value)
+}
+
+onMounted(async () => {
+  await init()
 })
 
 const pageRes = computed(() => {
@@ -54,12 +59,18 @@ function searchEvent() {
   })
 }
 
-function submitPost() {
+async function submitPost() {
+  const file = fileInput.value.files[0];
   try {
-    PostPost(postTitle.value, postText.value)
+    PostPost(postTitle.value, postText.value, file)
+    await init()
   } catch (e) {
     console.log(e)
   }
+}
+
+function imgURL(id) {
+  
 }
 
 watch(() => search.value, searchEvent)
@@ -71,13 +82,16 @@ watch(() => search.value, searchEvent)
       <input v-model="search" placeholder="Search..." type="text" />
       <ul class="post__list">
         <li v-for="(value, key) in postsArrPromis" :key="key" class="post__item">
-          <div class="post__header">
-            <p>{{ value.short_title }}</p>
-            <p>Autor: @{{ value.name }}</p>
-          </div>
-          <div class="post__content">
-            {{ value.descr }}
-          </div>
+          <RouterLink :to="{ name: 'Post', params: { id: value.id } }">
+            <div class="post__header">
+              <p>{{ value.short_title }}</p>
+              <p>Autor: @{{ value.name }}</p>
+            </div>
+            <div class="post__content">
+              <img :src="imgURL(key)" alt="">
+              {{ value.descr }}
+            </div>
+          </RouterLink>
         </li>
       </ul>
       <div class="button__wrapper">
@@ -94,13 +108,16 @@ watch(() => search.value, searchEvent)
         </div>
       </div>
     </div>
-    <form @submit.prevent="submitPost()">
+    <form class="form" @submit.prevent="submitPost()">
       <p>
         <label for="title">title</label
         ><input v-model="postTitle" type="text" name="title" id="title" />
       </p>
       <p>
         <label for="text">text</label><textarea v-model="postText" rows="4" name="text" id="text" />
+      </p>
+      <p>
+        <input ref="fileInput" name="img" type="file" />
       </p>
       <p><input type="submit" value="post" /></p>
     </form>
