@@ -14,19 +14,20 @@ onMounted(async () => {
 async function init() {
   try {
     post.value = await GetOnePost($route.params.id)
-    console.log(post.value);
+    console.log(post.value)
+    const date = new Date(post.value.created_at)
+    post.value.created_at = date.toLocaleDateString()
   } catch (e) {
     console.log(e)
   }
 }
-
 </script>
 
 <template>
   <section class="post">
     <h2>{{ post.title }}</h2>
     <p>был создан: {{ post.created_at }}</p>
-    <img :src="`${API_URL}/api/GetImg/${$route.params.id}`" alt="">
+    <img :src="`${API_URL}/api/GetImg/${$route.params.id}`" alt="" />
     <p>{{ post.descr }}</p>
   </section>
 </template>

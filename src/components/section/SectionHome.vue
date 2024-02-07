@@ -1,6 +1,10 @@
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
 import { GetPosts, PostPost } from '@/api/api.js'
+import router from '@/router/router.js'
+
+const emit = defineEmits(['postCreate'])
+const props = defineProps(['postCreate'])
 
 const posts = ref([])
 const postsArr = ref([])
@@ -31,7 +35,7 @@ const pageRes = computed(() => {
 })
 
 const start = computed(() => {
-  return 1 * pageRes.value - 4
+  return pageRes.value - 4
 })
 
 const end = computed(() => {
@@ -60,17 +64,17 @@ function searchEvent() {
 }
 
 async function submitPost() {
-  const file = fileInput.value.files[0];
+  const file = fileInput.value.files[0]
   try {
     PostPost(postTitle.value, postText.value, file)
-    await init()
+    emit('postCreate', { event: true, massage: 'Пост успешно создан' })
+    router.push({ name: 'Home' })
   } catch (e) {
     console.log(e)
   }
 }
-
-function imgURL(id) {
-  
+function flashExist() {
+  emit('postCreate', { event: false, massage: '' })
 }
 
 watch(() => search.value, searchEvent)
@@ -80,6 +84,10 @@ watch(() => search.value, searchEvent)
   <section class="post">
     <div class="post__left">
       <input v-model="search" placeholder="Search..." type="text" />
+      <div v-if="props.postCreate.event" class="ok massage">
+        <p>*{{ props.postCreate.massage }}</p>
+        <div @click="flashExist" class="flashExist">X</div>
+      </div>
       <ul class="post__list">
         <li v-for="(value, key) in postsArrPromis" :key="key" class="post__item">
           <RouterLink :to="{ name: 'Post', params: { id: value.id } }">
@@ -88,7 +96,6 @@ watch(() => search.value, searchEvent)
               <p>Autor: @{{ value.name }}</p>
             </div>
             <div class="post__content">
-              <img :src="imgURL(key)" alt="">
               {{ value.descr }}
             </div>
           </RouterLink>
@@ -125,8 +132,20 @@ watch(() => search.value, searchEvent)
 </template>
 
 <style scoped>
+.flashExist {
+  cursor: pointer;
+}
+.massage {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 1em;
+}
+.ok {
+  color: #fff;
+  background-color: rgba(4, 161, 109, 0.6);
+}
 .post__left {
-  height: 700px;
+  height: 800px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
