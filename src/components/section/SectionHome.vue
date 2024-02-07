@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, computed, watch } from 'vue'
 import { GetPosts, PostPost } from '@/api/api.js'
-import router from '@/router/router.js'
+// import router from '@/router/router.js'
 
 const emit = defineEmits(['postCreate'])
 const props = defineProps(['postCreate'])
@@ -66,9 +66,12 @@ function searchEvent() {
 async function submitPost() {
   const file = fileInput.value.files[0]
   try {
-    PostPost(postTitle.value, postText.value, file)
-    emit('postCreate', { event: true, massage: 'Пост успешно создан' })
-    router.push({ name: 'Home' })
+    const json = await PostPost(postTitle.value, postText.value, file)
+    console.log(json);
+    if (json.code === 200) {
+      await init()
+      emit('postCreate', { event: true, massage: 'Пост успешно создан' })
+    }
   } catch (e) {
     console.log(e)
   }
